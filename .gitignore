@@ -1,0 +1,30 @@
+# macOS
+*._*
+.DS_Store
+
+# GoLand IDE files
+.idea/
+
+# Compiled Object files, Static and Dynamic libs (Windows, macOS, Linux)
+*.o
+*.a
+*.so
+
+# Compiled Go binary
+*.exe
+*.out
+
+# Dependency directories (vendoring)
+vendor/
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Binary files
+bin/
+
+# Output files from the go profiler
+*.test
+
+# End of Jetbrains-specific entries
+
