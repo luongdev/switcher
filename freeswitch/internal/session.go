@@ -12,6 +12,16 @@ type SessionImpl struct {
 	client interfaces.Client
 }
 
+func (s *SessionImpl) Hangup(ctx context.Context, cause string) error {
+	_, err := s.client.Exec(ctx, commands.NewHangupCommand(s.GetId(), cause))
+
+	return err
+}
+
+func (s *SessionImpl) Exec(ctx context.Context, cmd interfaces.Command) (interfaces.CommandOutput, error) {
+	return s.client.Exec(ctx, cmd)
+}
+
 func (s *SessionImpl) Answer(ctx context.Context) error {
 	_, err := s.client.Exec(ctx, commands.NewAnswerCommand(s.GetId()))
 

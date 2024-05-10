@@ -5,6 +5,8 @@ import "context"
 type Server interface {
 	Start() error
 
+	SetStore(store ClientStore)
+
 	OnSessionStarted(fn OnSessionFunc)
 	OnSessionEnded(fn SessionEndedFunc)
 }

@@ -17,6 +17,12 @@ type ServerImpl struct {
 	sessionEnded   interfaces.SessionEndedFunc
 }
 
+func (s *ServerImpl) SetStore(store interfaces.ClientStore) {
+	if store != nil {
+		s.store = store
+	}
+}
+
 func (s *ServerImpl) OnSessionEnded(fn interfaces.SessionEndedFunc) {
 	if fn != nil {
 		s.sessionEnded = fn
@@ -38,7 +44,10 @@ func (s *ServerImpl) Start() error {
 		uid := raw.GetHeader("Unique-ID")
 		sCtx := context.WithValue(ctx, "uid", uid)
 		c := NewClient(conn, sCtx)
-		s.store.Set(uid, c)
+
+		if s.store != nil {
+			s.store.Set(uid, c)
+		}
 
 		if s.sessionStarted != nil {
 			ss := NewSession(c, raw)
@@ -57,7 +66,7 @@ func (s *ServerImpl) Start() error {
 	return err
 }
 
-func NewServer(host string, port uint16, store interfaces.ClientStore) interfaces.Server {
+func NewServer(host string, port uint16) interfaces.Server {
 	if port == 0 {
 		port = 65022
 	}
@@ -66,7 +75,7 @@ func NewServer(host string, port uint16, store interfaces.ClientStore) interface
 		host = "0.0.0.0"
 	}
 
-	s := &ServerImpl{host: host, port: port, store: store, ctx: context.Background()}
+	s := &ServerImpl{host: host, port: port, ctx: context.Background()}
 	s.sessionEnded = func() {
 		log.Printf("Session closed")
 	}

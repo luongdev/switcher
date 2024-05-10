@@ -60,5 +60,5 @@ func (c *InboundConfig) Build() (interfaces.Client, error) {
 }
 
 func (c *OutboundConfig) Build() interfaces.Server {
-	return internal.NewServer(c.Host, c.Port, context.Background())
+	return internal.NewServer(c.Host, c.Port)
 }
