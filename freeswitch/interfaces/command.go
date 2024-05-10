@@ -1,7 +1,14 @@
 package interfaces
 
-type API interface {
+type Command interface {
+	Raw() string
 }
 
-type Command interface {
+type Filter interface {
+}
+
+type CommandOutput interface {
+	IsOk() bool
+
+	GetReply() string
 }

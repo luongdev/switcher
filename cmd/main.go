@@ -28,8 +28,15 @@ func main() {
 	}
 
 	server := co.Build()
-	server.OnSessionStarted(func(ctx context.Context, client interfaces.Client, event interfaces.Event) {
-		log.Printf("Session opened")
+	server.OnSessionStarted(func(ctx context.Context, session interfaces.Session) {
+		log.Printf("Session started: %s", session.GetId())
+
+		if err := session.Answer(ctx); err != nil {
+			log.Printf("Failed to answer session: %s", err)
+			return
+		}
+
+		log.Printf("Answered session: %s", session.GetId())
 	})
 
 	if err := server.Start(); err != nil {

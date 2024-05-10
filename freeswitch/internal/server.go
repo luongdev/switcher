@@ -9,12 +9,10 @@ import (
 )
 
 type ServerImpl struct {
-	//cfg freeswitch.OutboundConfig
-
-	host string
-	port uint16
-	ctx  context.Context
-
+	host           string
+	port           uint16
+	ctx            context.Context
+	store          interfaces.ClientStore
 	sessionStarted interfaces.OnSessionFunc
 	sessionEnded   interfaces.SessionEndedFunc
 }
@@ -37,15 +35,19 @@ func (s *ServerImpl) Start() error {
 
 	opts.Context = s.ctx
 	err := opts.ListenAndServe(hp, func(ctx context.Context, conn *eslgo.Conn, raw *eslgo.RawResponse) {
-		if s.sessionStarted != nil {
-			c := NewClient(conn, ctx)
-			ss := NewSession(c, raw)
+		uid := raw.GetHeader("Unique-ID")
+		sCtx := context.WithValue(ctx, "uid", uid)
+		c := NewClient(conn, sCtx)
+		s.store.Set(uid, c)
 
-			s.sessionStarted(ctx, ss)
+		if s.sessionStarted != nil {
+			ss := NewSession(c, raw)
+			s.sessionStarted(sCtx, ss)
 		}
 
 		select {
 		case <-ctx.Done():
+			s.store.Del(uid)
 			if s.sessionEnded != nil {
 				s.sessionEnded()
 			}
@@ -55,7 +57,7 @@ func (s *ServerImpl) Start() error {
 	return err
 }
 
-func NewServer(host string, port uint16, ctx context.Context) interfaces.Server {
+func NewServer(host string, port uint16, store interfaces.ClientStore) interfaces.Server {
 	if port == 0 {
 		port = 65022
 	}
@@ -64,7 +66,7 @@ func NewServer(host string, port uint16, ctx context.Context) interfaces.Server 
 		host = "0.0.0.0"
 	}
 
-	s := &ServerImpl{host: host, port: port, ctx: ctx}
+	s := &ServerImpl{host: host, port: port, store: store, ctx: context.Background()}
 	s.sessionEnded = func() {
 		log.Printf("Session closed")
 	}

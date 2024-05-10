@@ -18,19 +18,17 @@ func (c *ClientImpl) Disconnect() {
 	}
 }
 
-func (c *ClientImpl) Api(ctx context.Context, api *interfaces.API) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientImpl) Exec(ctx context.Context, cmd interfaces.Command) (interfaces.CommandOutput, error) {
+	raw, err := c.conn.SendCommand(ctx, NewCommand(cmd.Raw()))
+	if err != nil {
+		return nil, err
+	}
+
+	return NewCommandOutput(raw), nil
 }
 
-func (c *ClientImpl) Execute(ctx context.Context, cmd *interfaces.Command) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c *ClientImpl) Events(ctx context.Context) {
-	//TODO implement me
-	panic("implement me")
+func (c *ClientImpl) Events(ctx context.Context) error {
+	return nil
 }
 
 func NewClient(c *eslgo.Conn, ctx context.Context) *ClientImpl {
