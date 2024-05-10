@@ -19,7 +19,7 @@ func (l *Leg) Valid() bool {
 	return true
 }
 
-func (l *Leg) DialString() interface{} {
+func (l *Leg) DialString() string {
 	if l.Uid != "" {
 		if _, err := uuid.Parse(l.Uid); err != nil {
 			l.Uid = ""
@@ -41,4 +41,12 @@ func (l *Leg) DialString() interface{} {
 	}
 
 	return fmt.Sprintf("%v%v", vars, l.Endpoint)
+}
+
+func (l *Leg) String() string {
+	return l.DialString()
+}
+
+func (l *Leg) GoString() string {
+	return l.DialString()
 }

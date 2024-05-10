@@ -5,19 +5,21 @@ import (
 	"github.com/google/uuid"
 )
 
-type UIdCommand struct {
-	uid      string
-	ignoreId bool
+type UId struct {
+	uid          string
+	allowMissing bool
 }
 
-func (c *UIdCommand) Validate() error {
-	if !c.ignoreId {
+func (c *UId) Validate() error {
+	if !c.allowMissing {
 		if len(c.uid) == 0 {
 			return fmt.Errorf("uid is required")
 		}
+	}
 
+	if len(c.uid) > 0 {
 		if _, err := uuid.Parse(c.uid); err != nil {
-			return err
+			return fmt.Errorf("invalid uid: %v", err)
 		}
 	}
 

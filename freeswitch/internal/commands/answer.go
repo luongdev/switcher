@@ -6,7 +6,7 @@ import (
 )
 
 type AnswerCommand struct {
-	UIdCommand
+	UId
 }
 
 func (a *AnswerCommand) Raw() (string, error) {
@@ -18,7 +18,7 @@ func (a *AnswerCommand) Raw() (string, error) {
 }
 
 func NewAnswerCommand(uid string) *AnswerCommand {
-	return &AnswerCommand{UIdCommand: UIdCommand{uid: uid}}
+	return &AnswerCommand{UId: UId{uid: uid}}
 }
 
 var _ types.Command = (*AnswerCommand)(nil)

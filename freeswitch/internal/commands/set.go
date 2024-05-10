@@ -7,14 +7,14 @@ import (
 )
 
 type SetCommand struct {
-	UIdCommand
+	UId
 
 	vars  map[string]interface{}
 	multi bool
 }
 
 func (a *SetCommand) Validate() error {
-	err := a.UIdCommand.Validate()
+	err := a.UId.Validate()
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (a *SetCommand) Raw() (string, error) {
 
 func NewSetCommand(uid string, vars map[string]interface{}) *SetCommand {
 
-	return &SetCommand{UIdCommand: UIdCommand{uid: uid}, vars: vars, multi: len(vars) > 1}
+	return &SetCommand{UId: UId{uid: uid}, vars: vars, multi: len(vars) > 1}
 }
 
 var _ types.Command = (*SetCommand)(nil)

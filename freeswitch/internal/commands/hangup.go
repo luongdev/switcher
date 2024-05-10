@@ -6,7 +6,7 @@ import (
 )
 
 type HangupCommand struct {
-	UIdCommand
+	UId
 
 	cause string
 }
@@ -20,7 +20,7 @@ func (a *HangupCommand) Raw() (string, error) {
 }
 
 func NewHangupCommand(uid string, cause string) *HangupCommand {
-	return &HangupCommand{UIdCommand: UIdCommand{uid: uid}, cause: cause}
+	return &HangupCommand{UId: UId{uid: uid}, cause: cause}
 }
 
 var _ types.Command = (*HangupCommand)(nil)

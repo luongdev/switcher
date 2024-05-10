@@ -20,3 +20,7 @@ func SetCommand(uid string, vars map[string]interface{}) types.Command {
 func NewOriginateCommand(background bool, aleg, bleg *types.Leg, vars map[string]interface{}) types.Command {
 	return commands.NewOriginateCommand(background, aleg, bleg, vars)
 }
+
+func NewBridgeCommand(uid string, otherLeg *types.Leg) types.Command {
+	return commands.NewBridgeCommand(uid, otherLeg)
+}
