@@ -1,20 +1,26 @@
 package commands
 
 import (
-	"github.com/luongdev/switcher/freeswitch/interfaces"
+	"github.com/luongdev/switcher/freeswitch/types"
 	"github.com/percipia/eslgo/command/call"
 )
 
 type HangupCommand struct {
-	call.Execute
+	UIdCommand
+
+	cause string
 }
 
-func (a *HangupCommand) Raw() string {
-	return a.Execute.BuildMessage()
+func (a *HangupCommand) Raw() (string, error) {
+	if err := a.Validate(); err != nil {
+		return "", err
+	}
+
+	return (&call.Execute{UUID: a.uid, AppName: "hangup", AppArgs: a.cause}).BuildMessage(), nil
 }
 
 func NewHangupCommand(uid string, cause string) *HangupCommand {
-	return &HangupCommand{Execute: call.Execute{UUID: uid, AppName: "hangup", AppArgs: cause}}
+	return &HangupCommand{UIdCommand: UIdCommand{uid: uid}, cause: cause}
 }
 
-var _ interfaces.Command = (*HangupCommand)(nil)
+var _ types.Command = (*HangupCommand)(nil)

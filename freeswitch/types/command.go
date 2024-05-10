@@ -1,7 +1,9 @@
-package interfaces
+package types
 
 type Command interface {
-	Raw() string
+	Raw() (string, error)
+
+	Validate() error
 }
 
 type Filter interface {

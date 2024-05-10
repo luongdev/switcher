@@ -2,39 +2,59 @@ package commands
 
 import (
 	"fmt"
-	"github.com/luongdev/switcher/freeswitch/interfaces"
+	"github.com/luongdev/switcher/freeswitch/types"
 	"github.com/percipia/eslgo/command/call"
 )
 
 type SetCommand struct {
-	call.Execute
+	UIdCommand
+
+	vars  map[string]interface{}
+	multi bool
 }
 
-func (a *SetCommand) Raw() string {
-	return a.Execute.BuildMessage()
+func (a *SetCommand) Validate() error {
+	err := a.UIdCommand.Validate()
+	if err != nil {
+		return err
+	}
+
+	if len(a.vars) == 0 {
+		return fmt.Errorf("at least variable is required")
+	}
+
+	return nil
 }
 
-func NewSetCommand(uid string, vars map[string]interface{}) *SetCommand {
+func (a *SetCommand) Raw() (string, error) {
+	if err := a.Validate(); err != nil {
+		return "", err
+	}
+
 	cmd := "set"
 	args := ""
 
 	del := ";"
-	multi := len(vars) > 1
-	if multi {
+	if a.multi {
 		cmd = "multiset"
 		args = fmt.Sprintf("^^")
 	}
 
-	for k, v := range vars {
+	for k, v := range a.vars {
 		arg := fmt.Sprintf("%s=%v", k, v)
-		if multi {
+		if a.multi {
 			args += fmt.Sprintf("%s%s", del, arg)
 			continue
 		}
 		args = arg
 	}
 
-	return &SetCommand{Execute: call.Execute{UUID: uid, AppName: cmd, AppArgs: args}}
+	return (&call.Execute{UUID: a.uid, AppName: cmd, AppArgs: args}).BuildMessage(), nil
 }
 
-var _ interfaces.Command = (*SetCommand)(nil)
+func NewSetCommand(uid string, vars map[string]interface{}) *SetCommand {
+
+	return &SetCommand{UIdCommand: UIdCommand{uid: uid}, vars: vars, multi: len(vars) > 1}
+}
+
+var _ types.Command = (*SetCommand)(nil)

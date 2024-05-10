@@ -1,4 +1,4 @@
-package interfaces
+package types
 
 const DefaultClient = "default"
 

@@ -3,7 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
-	"github.com/luongdev/switcher/freeswitch/interfaces"
+	"github.com/luongdev/switcher/freeswitch/types"
 	"github.com/percipia/eslgo"
 	"log"
 )
@@ -12,24 +12,24 @@ type ServerImpl struct {
 	host           string
 	port           uint16
 	ctx            context.Context
-	store          interfaces.ClientStore
-	sessionStarted interfaces.OnSessionFunc
-	sessionEnded   interfaces.SessionEndedFunc
+	store          types.ClientStore
+	sessionStarted types.OnSessionFunc
+	sessionEnded   types.SessionEndedFunc
 }
 
-func (s *ServerImpl) SetStore(store interfaces.ClientStore) {
+func (s *ServerImpl) SetStore(store types.ClientStore) {
 	if store != nil {
 		s.store = store
 	}
 }
 
-func (s *ServerImpl) OnSessionEnded(fn interfaces.SessionEndedFunc) {
+func (s *ServerImpl) OnSessionEnded(fn types.SessionEndedFunc) {
 	if fn != nil {
 		s.sessionEnded = fn
 	}
 }
 
-func (s *ServerImpl) OnSessionStarted(fn interfaces.OnSessionFunc) {
+func (s *ServerImpl) OnSessionStarted(fn types.OnSessionFunc) {
 	if fn != nil {
 		s.sessionStarted = fn
 	}
@@ -66,7 +66,7 @@ func (s *ServerImpl) Start() error {
 	return err
 }
 
-func NewServer(host string, port uint16) interfaces.Server {
+func NewServer(host string, port uint16) types.Server {
 	if port == 0 {
 		port = 65022
 	}
@@ -83,4 +83,4 @@ func NewServer(host string, port uint16) interfaces.Server {
 	return s
 }
 
-var _ interfaces.Server = (*ServerImpl)(nil)
+var _ types.Server = (*ServerImpl)(nil)

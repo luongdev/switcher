@@ -1,20 +1,24 @@
 package commands
 
 import (
-	"github.com/luongdev/switcher/freeswitch/interfaces"
+	"github.com/luongdev/switcher/freeswitch/types"
 	"github.com/percipia/eslgo/command/call"
 )
 
 type AnswerCommand struct {
-	call.Execute
+	UIdCommand
 }
 
-func (a *AnswerCommand) Raw() string {
-	return a.Execute.BuildMessage()
+func (a *AnswerCommand) Raw() (string, error) {
+	if err := a.Validate(); err != nil {
+		return "", err
+	}
+
+	return (&call.Execute{UUID: a.uid, AppName: "answer"}).BuildMessage(), nil
 }
 
 func NewAnswerCommand(uid string) *AnswerCommand {
-	return &AnswerCommand{Execute: call.Execute{UUID: uid, AppName: "answer"}}
+	return &AnswerCommand{UIdCommand: UIdCommand{uid: uid}}
 }
 
-var _ interfaces.Command = (*AnswerCommand)(nil)
+var _ types.Command = (*AnswerCommand)(nil)

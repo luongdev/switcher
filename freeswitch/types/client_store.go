@@ -1,4 +1,4 @@
-package interfaces
+package types
 
 type ClientStore interface {
 	Get(k string) (Client, bool)

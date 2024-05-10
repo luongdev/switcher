@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/luongdev/switcher/freeswitch/interfaces"
+	"github.com/luongdev/switcher/freeswitch/types"
 	"github.com/percipia/eslgo"
 )
 
@@ -33,4 +33,4 @@ func NewCommandOutput(raw *eslgo.RawResponse) *CommandOutputImpl {
 	return &CommandOutputImpl{RawResponse: raw}
 }
 
-var _ interfaces.CommandOutput = (*CommandOutputImpl)(nil)
+var _ types.CommandOutput = (*CommandOutputImpl)(nil)

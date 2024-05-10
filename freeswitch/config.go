@@ -3,8 +3,8 @@ package freeswitch
 import (
 	"context"
 	"fmt"
-	"github.com/luongdev/switcher/freeswitch/interfaces"
 	"github.com/luongdev/switcher/freeswitch/internal"
+	"github.com/luongdev/switcher/freeswitch/types"
 	"github.com/percipia/eslgo"
 	"time"
 )
@@ -26,7 +26,7 @@ type Config struct {
 	Outbound OutboundConfig `yaml:"outbound"`
 }
 
-func (c *InboundConfig) Build() (interfaces.Client, error) {
+func (c *InboundConfig) Build() (types.Client, error) {
 	if len(c.Host) == 0 {
 		c.Host = "127.0.0.1"
 	}
@@ -59,6 +59,6 @@ func (c *InboundConfig) Build() (interfaces.Client, error) {
 	return internal.NewClient(conn, ctx), nil
 }
 
-func (c *OutboundConfig) Build() interfaces.Server {
+func (c *OutboundConfig) Build() types.Server {
 	return internal.NewServer(c.Host, c.Port)
 }

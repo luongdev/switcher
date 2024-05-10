@@ -2,14 +2,14 @@ package internal
 
 import (
 	"context"
-	"github.com/luongdev/switcher/freeswitch/interfaces"
 	"github.com/luongdev/switcher/freeswitch/internal/commands"
+	"github.com/luongdev/switcher/freeswitch/types"
 )
 
 type SessionImpl struct {
-	interfaces.Event
+	types.Event
 
-	client interfaces.Client
+	client types.Client
 }
 
 func (s *SessionImpl) Hangup(ctx context.Context, cause string) error {
@@ -18,7 +18,7 @@ func (s *SessionImpl) Hangup(ctx context.Context, cause string) error {
 	return err
 }
 
-func (s *SessionImpl) Exec(ctx context.Context, cmd interfaces.Command) (interfaces.CommandOutput, error) {
+func (s *SessionImpl) Exec(ctx context.Context, cmd types.Command) (types.CommandOutput, error) {
 	return s.client.Exec(ctx, cmd)
 }
 
@@ -28,15 +28,15 @@ func (s *SessionImpl) Answer(ctx context.Context) error {
 	return err
 }
 
-func (s *SessionImpl) Events(ctx context.Context, filters ...interfaces.Filter) {
+func (s *SessionImpl) Events(ctx context.Context, filters ...types.Filter) {
 }
 
 func (s *SessionImpl) GetId() string {
 	return s.Event.GetHeader("Unique-ID")
 }
 
-func NewSession(client interfaces.Client, e interfaces.Event) interfaces.Session {
+func NewSession(client types.Client, e types.Event) types.Session {
 	return &SessionImpl{client: client, Event: e}
 }
 
-var _ interfaces.Session = (*SessionImpl)(nil)
+var _ types.Session = (*SessionImpl)(nil)

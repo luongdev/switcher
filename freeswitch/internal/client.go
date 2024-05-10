@@ -2,7 +2,7 @@ package internal
 
 import (
 	"context"
-	"github.com/luongdev/switcher/freeswitch/interfaces"
+	"github.com/luongdev/switcher/freeswitch/types"
 	"github.com/percipia/eslgo"
 )
 
@@ -18,13 +18,18 @@ func (c *ClientImpl) Disconnect() {
 	}
 }
 
-func (c *ClientImpl) Exec(ctx context.Context, cmd interfaces.Command) (interfaces.CommandOutput, error) {
-	raw, err := c.conn.SendCommand(ctx, NewCommand(cmd.Raw()))
+func (c *ClientImpl) Exec(ctx context.Context, cmd types.Command) (types.CommandOutput, error) {
+	in, err := cmd.Raw()
 	if err != nil {
 		return nil, err
 	}
 
-	return NewCommandOutput(raw), nil
+	out, err := c.conn.SendCommand(ctx, NewCommand(in))
+	if err != nil {
+		return nil, err
+	}
+
+	return NewCommandOutput(out), nil
 }
 
 func (c *ClientImpl) Events(ctx context.Context) error {
@@ -32,7 +37,8 @@ func (c *ClientImpl) Events(ctx context.Context) error {
 }
 
 func NewClient(c *eslgo.Conn, ctx context.Context) *ClientImpl {
+	//c.OriginateCall()
 	return &ClientImpl{conn: c, ctx: ctx}
 }
 
-var _ interfaces.Client = (*ClientImpl)(nil)
+var _ types.Client = (*ClientImpl)(nil)
