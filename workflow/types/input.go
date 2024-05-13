@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -19,6 +20,15 @@ func (m Map) Convert(o interface{}) error {
 	}
 
 	return decoder.Decode(m)
+}
+
+func (m Map) Bytes() ([]byte, error) {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
 type WorkflowInput Map

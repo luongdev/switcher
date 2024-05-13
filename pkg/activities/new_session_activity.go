@@ -1,0 +1,6 @@
+package activities
+
+import "github.com/luongdev/switcher/internal/activities"
+
+type NewSessionActivityInput activities.NewSessionActivityInput
+type NewSessionActivityOutput activities.NewSessionActivityOutput

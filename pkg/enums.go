@@ -5,8 +5,9 @@ import (
 )
 
 const (
-	ActivityAnswer enums.Activity = "answer"
-	ActivityHangup enums.Activity = "hangup"
-	ActivityDial   enums.Activity = "dial"
-	ActivityEcho   enums.Activity = "echo"
+	ActivityAnswer      enums.Activity = "answer"
+	ActivityHangup      enums.Activity = "hangup"
+	ActivityDial        enums.Activity = "dial"
+	ActivityEcho        enums.Activity = "echo"
+	ActivitySessionInit enums.Activity = "session_init"
 )

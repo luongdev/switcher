@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	internalactivity "github.com/luongdev/switcher/internal/activities"
+	pkg2 "github.com/luongdev/switcher/pkg"
+	"github.com/luongdev/switcher/types"
 	"github.com/luongdev/switcher/workflow"
+	"github.com/luongdev/switcher/workflow/enums"
 	"github.com/luongdev/switcher/workflow/pkg"
-	"github.com/luongdev/switcher/workflow/pkg/activities"
-	"github.com/luongdev/switcher/workflow/types"
+	workflowtypes "github.com/luongdev/switcher/workflow/types"
 	"go.uber.org/cadence/.gen/go/shared"
 	libworkflow "go.uber.org/cadence/workflow"
-	"net/http"
 	"time"
 )
 
@@ -33,7 +35,7 @@ func main() {
 
 	r := pkg.NewRegistry()
 	r.RegisterWorkflow("demo-workflow", &WorkflowImpl{registry: r})
-	r.RegisterActivity("http", activities.HttpActivity())
+	r.RegisterActivity(pkg2.ActivitySessionInit, internalactivity.NewNewSessionActivity())
 
 	ws, err := wc.Build(client, r)
 	if err != nil {
@@ -78,24 +80,39 @@ func main() {
 }
 
 type WorkflowImpl struct {
-	registry types.Registry
+	registry workflowtypes.Registry
 }
 
-func (w *WorkflowImpl) HandlerFunc() types.WorkflowFunc {
-	return func(ctx libworkflow.Context, input *types.WorkflowInput) (o *types.WorkflowOutput, err error) {
+func (w *WorkflowImpl) HandlerFunc() workflowtypes.WorkflowFunc {
+	return func(ctx libworkflow.Context, input *workflowtypes.WorkflowInput) (o *workflowtypes.WorkflowOutput, err error) {
 
 		ctx = libworkflow.WithActivityOptions(ctx,
 			libworkflow.ActivityOptions{ScheduleToStartTimeout: time.Second, StartToCloseTimeout: time.Second * 60})
 
-		if a, ok := w.registry.GetActivity("http"); ok {
-			ai := activities.HttpActivityInput{
-				Url:    "https://reqres.in/api/users?page=2",
-				Method: http.MethodGet,
+		if a, ok := w.registry.GetActivity(pkg2.ActivitySessionInit); ok {
+			ai := internalactivity.NewSessionActivityInput{
+				Initializer: "https://reqres.in/api/users?page=2",
+				Protocol:    "http",
+				Domain:      "voice.metechvn.com",
+				ANI:         "0987654321",
+				DNIS:        "0987654321",
+				SessionId:   "dkalfja;klsdfja;sdjf",
 			}
 
-			var o1 interface{}
+			var o1 workflowtypes.ActivityOutput
 			if err = libworkflow.ExecuteActivity(ctx, a.HandlerFunc(), ai).Get(ctx, &o1); err != nil {
 				return
+			}
+
+			if o1.Success && o1.Next != "" {
+				if a, ok := w.registry.GetActivity(o1.Next); ok {
+					if o1.Next == enums.ActivityHttp {
+						hi := o1.Metadata[enums.FieldInput]
+						if err = libworkflow.ExecuteActivity(ctx, a.HandlerFunc(), hi).Get(ctx, &o1); err != nil {
+							return
+						}
+					}
+				}
 			}
 
 			fmt.Printf("activity output: %v\n", o)
@@ -107,4 +124,14 @@ func (w *WorkflowImpl) HandlerFunc() types.WorkflowFunc {
 	}
 }
 
-var _ types.Workflow = (*WorkflowImpl)(nil)
+var _ workflowtypes.Workflow = (*WorkflowImpl)(nil)
+
+type SS struct {
+	SessionId string `json:"sessionId"`
+}
+
+func (s *SS) GetSessionId() string {
+	return s.SessionId
+}
+
+var _ types.SessionInput = (*SS)(nil)

@@ -40,8 +40,8 @@ func NewWorker(domain, taskList string, client types.Client, registry types.Regi
 			logger.Info("registered workflow", zap.String("name", name), zap.Any("workflow", f.HandlerFunc))
 		}
 		for name, a := range r.Activities() {
-			w.RegisterActivityWithOptions(a.HandlerFunc(), activity.RegisterOptions{Name: name})
-			logger.Info("registered activity", zap.String("name", name), zap.Any("workflow", a.HandlerFunc))
+			w.RegisterActivityWithOptions(a.HandlerFunc(), activity.RegisterOptions{Name: name.String()})
+			logger.Info("registered activity", zap.Any("name", name), zap.Any("workflow", a.HandlerFunc))
 		}
 	}
 

@@ -3,22 +3,22 @@ package activities
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/luongdev/switcher/workflow/enums"
 	"github.com/luongdev/switcher/workflow/types"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/zap"
-	"io"
 	"net/http"
+	"time"
 )
 
 type HttpActivityInput struct {
-	types.ActivityInput
-
-	Url     string            `json:"url"`
-	Method  string            `json:"method"`
-	Headers map[string]string `json:"headers"`
-	Body    []byte            `json:"body"`
+	Url     string        `json:"url"`
+	Method  string        `json:"method"`
+	Headers types.Map     `json:"headers"`
+	Timeout time.Duration `json:"timeout"`
+	Body    types.Map     `json:"body"`
 }
 
 func (i *HttpActivityInput) DefaultAndValidate() (err error) {
@@ -37,11 +37,12 @@ func (i *HttpActivityInput) DefaultAndValidate() (err error) {
 	}
 
 	if i.Headers == nil {
-		i.Headers = make(map[string]string)
+		i.Headers = make(types.Map)
 		i.Headers["Content-Type"] = "application/json"
 	}
+
 	if i.Body == nil {
-		i.Body = []byte{}
+		i.Body = make(types.Map)
 	}
 
 	return
@@ -52,13 +53,18 @@ func (i *HttpActivityInput) Request() (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(i.Method, i.Url, bytes.NewBuffer(i.Body))
+	b, err := i.Body.Bytes()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(i.Method, i.Url, bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
 
 	for k, v := range i.Headers {
-		req.Header.Set(k, v)
+		req.Header.Set(k, fmt.Sprintf("%v", v))
 	}
 
 	return req, nil
@@ -66,7 +72,7 @@ func (i *HttpActivityInput) Request() (*http.Request, error) {
 
 type HttpActivityOutput struct {
 	StatusCode int `json:"statusCode"`
-	Body       []byte
+	Body       types.Map
 }
 
 type HttpActivity struct {
@@ -91,15 +97,16 @@ func (h *HttpActivity) execute() (o *types.ActivityOutput, err error) {
 		return nil, err
 	}
 
-	res, err := http.DefaultClient.Do(req)
+	client := &http.Client{Timeout: h.input.Timeout}
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	o = &types.ActivityOutput{Success: false, Metadata: make(map[enums.Field]interface{})}
-	ao := &HttpActivityOutput{StatusCode: res.StatusCode, Body: []byte{}}
+	ao := &HttpActivityOutput{StatusCode: res.StatusCode}
 
-	ao.Body, err = io.ReadAll(res.Body)
+	err = json.NewDecoder(res.Body).Decode(&ao.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +117,7 @@ func (h *HttpActivity) execute() (o *types.ActivityOutput, err error) {
 	h.logger.Info("HttpActivity completed",
 		zap.Any("input", h.input),
 		zap.Any("output", ao),
-		zap.Any("bytesRead", string(ao.Body)))
+		zap.Any("bytesRead", ao.Body))
 
 	defer h.responseCloser(res)
 

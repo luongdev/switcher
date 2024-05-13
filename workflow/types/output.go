@@ -8,6 +8,7 @@ type WorkflowOutput struct {
 }
 
 type ActivityOutput struct {
-	Success  bool `json:"success"`
-	Metadata map[enums.Field]interface{}
+	Success  bool                        `json:"success"`
+	Next     enums.Activity              `json:"next"`
+	Metadata map[enums.Field]interface{} `json:"metadata"`
 }
