@@ -2,6 +2,7 @@ package commands
 
 import (
 	"github.com/luongdev/switcher/freeswitch/types"
+	"github.com/percipia/eslgo/command"
 	"github.com/percipia/eslgo/command/call"
 )
 
@@ -16,12 +17,14 @@ func (a *HangupCommand) Raw() (string, error) {
 		return "", err
 	}
 
-	appName := "hupall"
+	var cmd command.Command
 	if a.uid != "" {
-		appName = "hangup"
+		cmd = &call.Execute{UUID: a.uid, AppName: "hangup", AppArgs: a.cause}
+	} else {
+		cmd = &command.API{Command: "hupall", Arguments: a.cause}
 	}
 
-	return (&call.Execute{UUID: a.uid, AppName: appName, AppArgs: a.cause}).BuildMessage(), nil
+	return cmd.BuildMessage(), nil
 }
 
 func NewHangupCommand(uid string, cause string) *HangupCommand {

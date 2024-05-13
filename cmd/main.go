@@ -39,7 +39,7 @@ func main() {
 		//bridgeCmd := pkg.NewBridgeCommand(session.GetId(), &types.Leg{
 		//	Endpoint: "sofia/external/AGENT_10008@103.141.141.55:5080",
 		//})
-		bridgeCmd := pkg.NewEchoCommand(session.GetId())
+		bridgeCmd := pkg.LuaCommand(session.GetId(), "default_ivr.lua")
 		out, err := session.Exec(ctx, bridgeCmd)
 		if err != nil {
 			log.Printf("Failed to execute bridge command: %s", err)
