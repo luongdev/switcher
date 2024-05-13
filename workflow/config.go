@@ -64,6 +64,29 @@ func (c *ClientConfig) Build() (types.Client, error) {
 	return internal.NewClient(itf, c.ClientName), nil
 }
 
-func (c *WorkerConfig) Build(client types.Client, registry types.Registry) (types.Worker, error) {
-	return internal.NewWorker(client, registry)
+func (c *WorkerConfig) Build(client types.Client, registry types.Registry) ([]types.Worker, error) {
+	if c.TaskList == "" {
+		return nil, fmt.Errorf("task list is required")
+	}
+
+	logger, err := internal.NewLogger()
+	if err != nil {
+		return nil, err
+	}
+
+	workers := make([]types.Worker, 0, len(c.Domains))
+	for _, domain := range c.Domains {
+		if domain == "" {
+			continue
+		}
+
+		worker := internal.NewWorker(domain, c.TaskList, client, registry, logger)
+		workers = append(workers, worker)
+	}
+
+	if len(workers) == 0 {
+		return nil, fmt.Errorf("no domains provided")
+	}
+
+	return workers, nil
 }

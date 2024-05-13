@@ -1,7 +1,7 @@
 package types
 
 type Worker interface {
-	Start()
+	Start() error
 
 	Stop()
 }

@@ -18,15 +18,11 @@ type WorkerImpl struct {
 	logger   *zap.Logger
 }
 
-func (w *WorkerImpl) Start() {
+func (w *WorkerImpl) Start() error {
+	return w.worker.Run()
 }
 
-func NewWorker(domain, taskList string, client types.Client, registry types.Registry) (types.Worker, error) {
-	logger, err := NewLogger()
-	if err != nil {
-		return nil, err
-	}
-
+func NewWorker(domain, taskList string, client types.Client, registry types.Registry, logger *zap.Logger) types.Worker {
 	scope, closer := tally.NewRootScope(tally.ScopeOptions{
 		Prefix:   client.GetName(),
 		Tags:     map[string]string{"env": os.Getenv("ENV")},
@@ -36,7 +32,7 @@ func NewWorker(domain, taskList string, client types.Client, registry types.Regi
 	workerOptions := worker.Options{Logger: logger, MetricsScope: scope}
 	w := worker.New(client, domain, taskList, workerOptions)
 
-	return &WorkerImpl{client: client, registry: registry, worker: w, closer: closer, logger: logger}, nil
+	return &WorkerImpl{client: client, registry: registry, worker: w, closer: closer, logger: logger}
 }
 
 func (w *WorkerImpl) Stop() {
