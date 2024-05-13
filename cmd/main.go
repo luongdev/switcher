@@ -36,9 +36,10 @@ func main() {
 	server.OnSessionStarted(func(ctx context.Context, session types.Session) {
 		log.Printf("Session started: %s", session.GetId())
 
-		bridgeCmd := pkg.NewBridgeCommand(session.GetId(), &types.Leg{
-			Endpoint: "sofia/external/AGENT_10008@103.141.141.55:5080",
-		})
+		//bridgeCmd := pkg.NewBridgeCommand(session.GetId(), &types.Leg{
+		//	Endpoint: "sofia/external/AGENT_10008@103.141.141.55:5080",
+		//})
+		bridgeCmd := pkg.NewEchoCommand(session.GetId())
 		out, err := session.Exec(ctx, bridgeCmd)
 		if err != nil {
 			log.Printf("Failed to execute bridge command: %s", err)

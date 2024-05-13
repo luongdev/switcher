@@ -24,3 +24,19 @@ func NewOriginateCommand(background bool, aleg, bleg *types.Leg, vars map[string
 func NewBridgeCommand(uid string, otherLeg *types.Leg) types.Command {
 	return commands.NewBridgeCommand(uid, otherLeg)
 }
+
+func NewLuaCommand(uid, fileName string) types.Command {
+	return commands.NewLuaCommand(uid, fileName)
+}
+
+func NewReloadCommand(reType string) types.Command {
+	return commands.NewReloadCommand(reType)
+}
+
+func NewLoadCommand(module string, unload bool) types.Command {
+	return commands.NewLoadCommand(module, unload)
+}
+
+func NewEchoCommand(uid string) types.Command {
+	return commands.NewEchoCommand(uid)
+}
