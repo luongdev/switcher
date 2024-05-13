@@ -7,6 +7,7 @@ import (
 	apiv1 "github.com/uber/cadence-idl/go/proto/api/v1"
 	"go.uber.org/cadence/compatibility"
 	"go.uber.org/yarpc"
+	"go.uber.org/yarpc/transport/grpc"
 	"go.uber.org/yarpc/transport/tchannel"
 )
 
@@ -38,15 +39,18 @@ func (c *ClientConfig) Build() (types.Client, error) {
 	}
 
 	hp := fmt.Sprintf("%v:%v", c.Host, c.Port)
-	tChanTransport, err := tchannel.NewChannelTransport(tchannel.ServiceName(c.ServiceName))
+	_, err := tchannel.NewChannelTransport(tchannel.ServiceName(c.ServiceName))
 	if err != nil {
 		return nil, err
 	}
 
 	dispatcher := yarpc.NewDispatcher(yarpc.Config{
 		Name: c.ClientName,
+		//Outbounds: yarpc.Outbounds{
+		//	"cadence-frontend": {Unary: tChanTransport.NewSingleOutbound(hp)},
+		//},
 		Outbounds: yarpc.Outbounds{
-			"cadence-frontend": {Unary: tChanTransport.NewSingleOutbound(hp)},
+			c.ServiceName: {Unary: grpc.NewTransport().NewSingleOutbound(hp)},
 		},
 	})
 	if err := dispatcher.Start(); err != nil {

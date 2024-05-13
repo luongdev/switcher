@@ -3,7 +3,9 @@ package internal
 import (
 	"github.com/luongdev/switcher/workflow/types"
 	"github.com/uber-go/tally"
+	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/worker"
+	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 	"io"
 	"os"
@@ -31,6 +33,17 @@ func NewWorker(domain, taskList string, client types.Client, registry types.Regi
 
 	workerOptions := worker.Options{Logger: logger, MetricsScope: scope}
 	w := worker.New(client, domain, taskList, workerOptions)
+
+	if r, ok := registry.(*RegistryImpl); ok {
+		for name, f := range r.Workflows() {
+			w.RegisterWorkflowWithOptions(f.HandlerFunc(), workflow.RegisterOptions{Name: name})
+			logger.Info("registered workflow", zap.String("name", name), zap.Any("workflow", f.HandlerFunc))
+		}
+		for name, a := range r.Activities() {
+			w.RegisterActivityWithOptions(a.HandlerFunc(), activity.RegisterOptions{Name: name})
+			logger.Info("registered activity", zap.String("name", name), zap.Any("workflow", a.HandlerFunc))
+		}
+	}
 
 	return &WorkerImpl{client: client, registry: registry, worker: w, closer: closer, logger: logger}
 }

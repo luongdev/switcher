@@ -1,5 +1,13 @@
 package types
 
-type WorkflowOutput map[string]interface{}
+import "github.com/luongdev/switcher/workflow/enums"
 
-type ActivityOutput map[string]interface{}
+type WorkflowOutput struct {
+	Success  bool `json:"success"`
+	Metadata map[enums.Field]interface{}
+}
+
+type ActivityOutput struct {
+	Success  bool `json:"success"`
+	Metadata map[enums.Field]interface{}
+}

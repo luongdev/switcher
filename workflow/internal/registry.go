@@ -8,20 +8,43 @@ type RegistryImpl struct {
 }
 
 func (r *RegistryImpl) RegisterWorkflow(name string, w types.Workflow) {
+	if name == "" {
+		return
+	}
 
+	if _, ok := r.workflows[name]; ok {
+		return
+	}
+
+	r.workflows[name] = w
 }
 
 func (r *RegistryImpl) RegisterActivity(name string, a types.Activity) {
+	if name == "" {
+		return
+	}
+
+	if _, ok := r.activities[name]; ok {
+		return
+	}
+
+	r.activities[name] = a
 }
 
 func (r *RegistryImpl) GetWorkflow(name string) (types.Workflow, bool) {
-	//TODO implement me
-	panic("implement me")
+	if w, ok := r.workflows[name]; ok {
+		return w, true
+	}
+
+	return nil, false
 }
 
 func (r *RegistryImpl) GetActivity(name string) (types.Activity, bool) {
-	//TODO implement me
-	panic("implement me")
+	if a, ok := r.activities[name]; ok {
+		return a, true
+	}
+
+	return nil, false
 }
 
 func (r *RegistryImpl) Workflows() map[string]types.Workflow {
