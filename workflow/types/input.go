@@ -2,7 +2,10 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/mitchellh/mapstructure"
+	"reflect"
+	"strings"
 )
 
 type Map map[string]interface{}
@@ -31,7 +34,37 @@ func (m Map) Bytes() ([]byte, error) {
 	return b, nil
 }
 
+func (m Map) Set(s interface{}) error {
+	typ := reflect.TypeOf(s)
+	if typ.Kind() != reflect.Ptr || typ.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("expected a pointer to a struct")
+	}
+
+	val := reflect.ValueOf(s).Elem()
+	for i := 0; i < typ.Elem().NumField(); i++ {
+		field := typ.Elem().Field(i)
+		tag := strings.Split(field.Tag.Get("json"), ",")[0]
+		if tag == "" {
+			tag = field.Name
+		}
+
+		if _, ok := m[tag]; !ok {
+			m[tag] = val.Field(i).Interface()
+		}
+	}
+
+	return nil
+}
+
 type WorkflowInput Map
+
+func (i WorkflowInput) GetSessionId() string {
+	if id, ok := i["sessionId"]; ok {
+		return fmt.Sprintf("%v", id)
+	}
+
+	return ""
+}
 
 func (i WorkflowInput) Convert(o interface{}) error {
 	return Map(i).Convert(o)

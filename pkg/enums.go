@@ -6,6 +6,7 @@ import (
 
 const (
 	ActivityAnswer      enums.Activity = "answer"
+	ActivityBridge      enums.Activity = "bridge"
 	ActivityHangup      enums.Activity = "hangup"
 	ActivityDial        enums.Activity = "dial"
 	ActivityEcho        enums.Activity = "echo"

@@ -12,7 +12,7 @@ import (
 )
 
 type NewSessionActivityInput struct {
-	ANI         string        `input:"ani" json:"ani"`
+	ANI         string        `input:"ani" json:"ani,abc,def"`
 	DNIS        string        `input:"dnis" json:"dnis"`
 	Domain      string        `input:"domain" json:"domain"`
 	Initializer string        `input:"initializer" json:"initializer"`
@@ -84,12 +84,17 @@ func (n *NewSessionActivity) execute() (o *workflowtypes.ActivityOutput, err err
 		o.Metadata[enums.FieldSessionId] = n.input.GetSessionId()
 		o.Metadata[enums.FieldOutput] = ao
 
+		body := workflowtypes.Map{}
+		err = body.Set(&n.input)
+		if err != nil {
+			return
+		}
 		fi := &activities.HttpActivityInput{
 			Url:     n.input.Initializer,
 			Timeout: n.input.Timeout,
 			Method:  http.MethodPost,
 			Headers: workflowtypes.Map{"Domain-Name": n.input.Domain},
-			Body:    workflowtypes.Map{"ani": n.input.ANI, "dnis": n.input.DNIS, "sessionId": n.input.GetSessionId()},
+			Body:    body,
 		}
 
 		o.Metadata[enums.FieldInput] = fi

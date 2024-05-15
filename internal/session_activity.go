@@ -6,13 +6,13 @@ import (
 )
 
 type SessionActivity struct {
-	Provider freeswitchtypes.ClientProvider
+	provider freeswitchtypes.ClientProvider
 }
 
-func (a *SessionActivity) GetClient(input types.SessionInput) freeswitchtypes.Client {
-	return a.Provider.Get(input.GetSessionId())
+func (a *SessionActivity) GetClient(input types.SessionInput) (freeswitchtypes.Client, bool) {
+	return a.provider.Get(input.GetSessionId())
 }
 
-func NewFreeswitchActivity(provider freeswitchtypes.ClientProvider) *SessionActivity {
-	return &SessionActivity{Provider: provider}
+func NewFreeswitchActivity(provider freeswitchtypes.ClientProvider) SessionActivity {
+	return SessionActivity{provider: provider}
 }
