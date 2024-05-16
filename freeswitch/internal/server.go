@@ -43,7 +43,7 @@ func (s *ServerImpl) Start() error {
 	err := opts.ListenAndServe(hp, func(ctx context.Context, conn *eslgo.Conn, raw *eslgo.RawResponse) {
 		uid := raw.GetHeader("Unique-ID")
 		sCtx := context.WithValue(ctx, "uid", uid)
-		c := NewClient(conn, sCtx)
+		c := NewSessionClient(conn, uid, sCtx)
 
 		if s.store != nil {
 			s.store.Set(uid, c)

@@ -6,8 +6,8 @@ import (
 	"github.com/luongdev/switcher/freeswitch"
 	"github.com/luongdev/switcher/freeswitch/pkg"
 	"github.com/luongdev/switcher/freeswitch/types"
-	internalactivity "github.com/luongdev/switcher/internal/activities"
 	pkg2 "github.com/luongdev/switcher/pkg"
+	"github.com/luongdev/switcher/pkg/activities"
 	"github.com/luongdev/switcher/workflow"
 	pkg3 "github.com/luongdev/switcher/workflow/pkg"
 	types2 "github.com/luongdev/switcher/workflow/types"
@@ -57,9 +57,10 @@ func main() {
 	r := pkg3.NewRegistry()
 	provider := pkg.NewClientProvider(store)
 
-	r.RegisterWorkflow("demo-workflow", &WorkflowImpl{registry: r, provider: provider})
-	r.RegisterActivity(pkg2.ActivitySessionInit, internalactivity.NewNewSessionActivity())
-	r.RegisterActivity(pkg2.ActivityBridge, internalactivity.NewBridgeActivity(provider))
+	r.RegisterWorkflow("demo-workflow", &WorkflowImpl{registry: r, provider: provider, client: client})
+	r.RegisterActivity(pkg2.ActivityInitialize, activities.NewInitializeActivity())
+	r.RegisterActivity(pkg2.ActivityBridge, activities.NewBridgeActivity(provider))
+	r.RegisterActivity(pkg2.ActivityHangup, activities.NewHangupActivity(provider))
 
 	server := co.Build()
 	server.SetStore(store)

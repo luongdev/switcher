@@ -7,9 +7,13 @@ import (
 )
 
 type ClientImpl struct {
-	conn *eslgo.Conn
+	conn      *eslgo.Conn
+	sessionId string
+	ctx       context.Context
+}
 
-	ctx context.Context
+func (c *ClientImpl) GetSessionId() string {
+	return c.sessionId
 }
 
 func (c *ClientImpl) Disconnect() {
@@ -39,6 +43,9 @@ func (c *ClientImpl) Events(ctx context.Context) error {
 func NewClient(c *eslgo.Conn, ctx context.Context) *ClientImpl {
 	//c.OriginateCall()
 	return &ClientImpl{conn: c, ctx: ctx}
+}
+func NewSessionClient(c *eslgo.Conn, sessionId string, ctx context.Context) *ClientImpl {
+	return &ClientImpl{conn: c, ctx: ctx, sessionId: sessionId}
 }
 
 var _ types.Client = (*ClientImpl)(nil)

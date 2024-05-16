@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type NewSessionActivityInput struct {
+type InitializeActivityInput struct {
 	ANI         string        `input:"ani" json:"ani,abc,def"`
 	DNIS        string        `input:"dnis" json:"dnis"`
 	Domain      string        `input:"domain" json:"domain"`
@@ -21,13 +21,13 @@ type NewSessionActivityInput struct {
 	SessionId   string        `input:"sessionId" json:"sessionId"`
 }
 
-func (n *NewSessionActivityInput) GetSessionId() string {
+func (n *InitializeActivityInput) GetSessionId() string {
 	return n.SessionId
 }
 
-var _ types.SessionInput = (*NewSessionActivityInput)(nil)
+var _ types.SessionInput = (*InitializeActivityInput)(nil)
 
-func (n *NewSessionActivityInput) ValidateAndDefault() error {
+func (n *InitializeActivityInput) ValidateAndDefault() error {
 	if n.GetSessionId() == "" {
 		return fmt.Errorf("sessionId is required")
 	}
@@ -53,14 +53,14 @@ func (n *NewSessionActivityInput) ValidateAndDefault() error {
 	return nil
 }
 
-type NewSessionActivityOutput struct {
+type InitializeActivityOutput struct {
 }
 
-type NewSessionActivity struct {
-	input NewSessionActivityInput
+type InitializeActivity struct {
+	input InitializeActivityInput
 }
 
-func (n *NewSessionActivity) HandlerFunc() workflowtypes.ActivityFunc {
+func (n *InitializeActivity) HandlerFunc() workflowtypes.ActivityFunc {
 	return func(ctx context.Context, i *workflowtypes.ActivityInput) (o *workflowtypes.ActivityOutput, err error) {
 		if err = i.Convert(&n.input); err != nil {
 			return
@@ -74,9 +74,9 @@ func (n *NewSessionActivity) HandlerFunc() workflowtypes.ActivityFunc {
 	}
 }
 
-func (n *NewSessionActivity) execute() (o *workflowtypes.ActivityOutput, err error) {
+func (n *InitializeActivity) execute() (o *workflowtypes.ActivityOutput, err error) {
 	o = &workflowtypes.ActivityOutput{Metadata: make(map[enums.Field]interface{})}
-	ao := &NewSessionActivityOutput{}
+	ao := &InitializeActivityOutput{}
 	switch n.input.Protocol {
 	default:
 		o.Success = true
@@ -102,8 +102,8 @@ func (n *NewSessionActivity) execute() (o *workflowtypes.ActivityOutput, err err
 	return
 }
 
-func NewNewSessionActivity() *NewSessionActivity {
-	return &NewSessionActivity{}
+func NewInitializeActivity() *InitializeActivity {
+	return &InitializeActivity{}
 }
 
-var _ workflowtypes.Activity = (*NewSessionActivity)(nil)
+var _ workflowtypes.Activity = (*InitializeActivity)(nil)

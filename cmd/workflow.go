@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	types2 "github.com/luongdev/switcher/freeswitch/types"
 	"github.com/luongdev/switcher/internal/activities"
 	pkg2 "github.com/luongdev/switcher/pkg"
 	"github.com/luongdev/switcher/types"
 	workflowtypes "github.com/luongdev/switcher/workflow/types"
+	"go.uber.org/cadence/.gen/go/shared"
 	libworkflow "go.uber.org/cadence/workflow"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -30,7 +34,7 @@ import (
 //
 //	r := pkg.NewRegistry()
 //	r.RegisterWorkflow("demo-workflow", &WorkflowImpl{registry: r})
-//	r.RegisterActivity(pkg2.ActivitySessionInit, internalactivity.NewNewSessionActivity())
+//	r.RegisterActivity(pkg2.ActivityInitialize, internalactivity.NewInitializeActivity())
 //
 //	ws, err := wc.Build(client, r)
 //	if err != nil {
@@ -77,14 +81,15 @@ import (
 type WorkflowImpl struct {
 	registry workflowtypes.Registry
 	provider types2.ClientProvider
+	client   workflowtypes.Client
 }
+
+var InboundSignal = "inbound"
 
 func (w *WorkflowImpl) HandlerFunc() workflowtypes.WorkflowFunc {
 	return func(ctx libworkflow.Context, input *workflowtypes.WorkflowInput) (o *workflowtypes.WorkflowOutput, err error) {
 
-		ctx = libworkflow.WithActivityOptions(ctx,
-			libworkflow.ActivityOptions{ScheduleToStartTimeout: time.Second, StartToCloseTimeout: time.Second * 60})
-
+		logger := libworkflow.GetLogger(ctx)
 		if a, ok := w.registry.GetActivity(pkg2.ActivityBridge); ok {
 			sid := input.GetSessionId()
 			if sid == "" {
@@ -96,16 +101,87 @@ func (w *WorkflowImpl) HandlerFunc() workflowtypes.WorkflowFunc {
 				OtherLeg:  "sofia/develop/AGENT_10008@103.141.141.55:5080",
 			}
 
+			aCtx := libworkflow.WithActivityOptions(ctx, workflowtypes.ActivityTimeoutOptions(nil, time.Second*30))
 			var o1 workflowtypes.ActivityOutput
-			if err = libworkflow.ExecuteActivity(ctx, a.HandlerFunc(), ai).Get(ctx, &o1); err != nil {
+			if err = libworkflow.ExecuteActivity(aCtx, a.HandlerFunc(), ai).Get(ctx, &o1); err != nil {
 				return
 			}
 
 			fmt.Printf("activity output: %v\n", o1)
 		}
 
-		//if a, ok := w.registry.GetActivity(pkg2.ActivitySessionInit); ok {
-		//	ai := internalactivity.NewSessionActivityInput{
+		signalChan := libworkflow.GetSignalChannel(ctx, InboundSignal)
+		defer signalChan.Close()
+
+		var ws workflowtypes.WorkflowSignal
+		var raw workflowtypes.Map
+		sel := libworkflow.NewSelector(ctx).AddReceive(signalChan, func(ch libworkflow.Channel, ok bool) {
+			if ok {
+				ch.Receive(ctx, &raw)
+				if err = raw.Convert(&ws); err != nil {
+					logger.Error("Failed to convert signal", zap.Any("signal", raw), zap.Error(err))
+				}
+			}
+		})
+
+		go func(sid string) {
+			<-time.NewTimer(time.Second * 30).C
+
+			domain := "default"
+			s := workflowtypes.WorkflowSignal{
+				Action: pkg2.ActivityHangup,
+				Input: map[string]interface{}{
+					"sessionId":    sid,
+					"hangupCause":  "normal_clearing",
+					"hangupReason": "InboundSignalHangup",
+				},
+			}
+			b, err := json.Marshal(s)
+			if err != nil {
+				logger.Error("Failed to marshal input", zap.Error(err))
+				return
+			}
+			req := shared.SignalWorkflowExecutionRequest{
+				Domain:            &domain,
+				SignalName:        &InboundSignal,
+				WorkflowExecution: &shared.WorkflowExecution{WorkflowId: &sid},
+				Input:             b,
+			}
+
+			cc, cancel := context.WithTimeout(context.Background(), time.Minute)
+			defer cancel()
+			err = w.client.SignalWorkflowExecution(cc, &req)
+			if err != nil {
+				return
+			}
+		}(input.GetSessionId())
+
+		for {
+			sel.Select(ctx)
+
+			ws, err = ws.Default()
+			if err != nil {
+				logger.Error("Failed to process signal", zap.Any("signal", ws), zap.Error(err))
+				continue
+			}
+
+			if act, ok := w.registry.GetActivity(ws.Action); ok {
+				o := make(workflowtypes.Map)
+				aCtx := libworkflow.WithActivityOptions(ctx, ws.Options(nil))
+				err := libworkflow.ExecuteActivity(aCtx, act.HandlerFunc(), ws.Input).Get(aCtx, &o)
+				if err != nil {
+					logger.Error("Failed to execute activity", zap.Any("activity", ws.Action), zap.Error(err))
+				} else {
+					logger.Info("Activity executed", zap.Any("activity", ws.Action), zap.Any("output", o))
+					ws = workflowtypes.WorkflowSignal{}
+				}
+
+				continue
+			}
+		}
+
+		//if a, ok := w.registry.GetActivity(pkg2.ActivityInitialize); ok {
+		//	ai := internalactivity.InitializeActivityInput{
 		//		Initializer: "https://reqres.in/api/users?page=2",
 		//		Protocol:    "http",
 		//		Domain:      "voice.metechvn.com",
@@ -134,8 +210,6 @@ func (w *WorkflowImpl) HandlerFunc() workflowtypes.WorkflowFunc {
 		//
 		//	return
 		//}
-
-		return
 	}
 }
 

@@ -5,10 +5,10 @@ import (
 )
 
 const (
-	ActivityAnswer      enums.Activity = "answer"
-	ActivityBridge      enums.Activity = "bridge"
-	ActivityHangup      enums.Activity = "hangup"
-	ActivityDial        enums.Activity = "dial"
-	ActivityEcho        enums.Activity = "echo"
-	ActivitySessionInit enums.Activity = "session_init"
+	ActivityAnswer     enums.Activity = "answer"
+	ActivityBridge     enums.Activity = "bridge"
+	ActivityHangup     enums.Activity = "hangup"
+	ActivityDial       enums.Activity = "dial"
+	ActivityEcho       enums.Activity = "echo"
+	ActivityInitialize enums.Activity = "session_init"
 )

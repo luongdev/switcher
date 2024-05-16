@@ -1,60 +1,11 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/mitchellh/mapstructure"
-	"reflect"
-	"strings"
+	"github.com/luongdev/switcher/workflow/enums"
+	"go.uber.org/cadence/workflow"
+	"time"
 )
-
-type Map map[string]interface{}
-
-func (m Map) Convert(o interface{}) error {
-	config := &mapstructure.DecoderConfig{
-		Metadata: nil,
-		Result:   o,
-		TagName:  "input",
-	}
-
-	decoder, err := mapstructure.NewDecoder(config)
-	if err != nil {
-		return err
-	}
-
-	return decoder.Decode(m)
-}
-
-func (m Map) Bytes() ([]byte, error) {
-	b, err := json.Marshal(m)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
-}
-
-func (m Map) Set(s interface{}) error {
-	typ := reflect.TypeOf(s)
-	if typ.Kind() != reflect.Ptr || typ.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("expected a pointer to a struct")
-	}
-
-	val := reflect.ValueOf(s).Elem()
-	for i := 0; i < typ.Elem().NumField(); i++ {
-		field := typ.Elem().Field(i)
-		tag := strings.Split(field.Tag.Get("json"), ",")[0]
-		if tag == "" {
-			tag = field.Name
-		}
-
-		if _, ok := m[tag]; !ok {
-			m[tag] = val.Field(i).Interface()
-		}
-	}
-
-	return nil
-}
 
 type WorkflowInput Map
 
@@ -72,6 +23,77 @@ func (i WorkflowInput) Convert(o interface{}) error {
 
 type ActivityInput Map
 
+func (i ActivityInput) Timeout() time.Duration {
+	timeout := time.Minute
+	if t, ok := i["timeout"]; ok {
+		if d, ok := t.(time.Duration); ok {
+			timeout = d
+		}
+	}
+
+	return timeout
+}
+
+func (i ActivityInput) Callback() string {
+	callback := ""
+	if c, ok := i["callback"]; ok {
+		if s, ok := c.(string); ok {
+			callback = s
+		}
+	}
+
+	return callback
+}
+
+func (i ActivityInput) Options(parent *workflow.ActivityOptions) workflow.ActivityOptions {
+	return ActivityTimeoutOptions(parent, i.Timeout())
+}
+
 func (i ActivityInput) Convert(o interface{}) error {
 	return Map(i).Convert(o)
+}
+
+type WorkflowSignal struct {
+	Action  enums.Activity `json:"action"`
+	Input   ActivityInput  `json:"input"`
+	Timeout time.Duration  `json:"timeout"`
+}
+
+func (s WorkflowSignal) Default() (WorkflowSignal, error) {
+	if s.Action == "" {
+		return s, fmt.Errorf("action is required")
+	}
+
+	if s.Input == nil {
+		s.Input = make(ActivityInput)
+	}
+
+	if s.Timeout <= 0 {
+		s.Timeout = time.Minute
+	}
+
+	return s, nil
+}
+
+func (s WorkflowSignal) Options(parent *workflow.ActivityOptions) workflow.ActivityOptions {
+	return ActivityTimeoutOptions(parent, s.Timeout)
+}
+
+func ActivityTimeoutOptions(parent *workflow.ActivityOptions, timeout time.Duration) workflow.ActivityOptions {
+	opts := &workflow.ActivityOptions{}
+	if parent != nil {
+		opts = parent
+	} else if timeout <= 0 {
+		timeout = time.Minute
+	}
+
+	opts.StartToCloseTimeout = timeout
+	if opts.HeartbeatTimeout <= 0 {
+		opts.HeartbeatTimeout = timeout / 5
+	}
+	if opts.ScheduleToStartTimeout <= 0 {
+		opts.ScheduleToStartTimeout = opts.HeartbeatTimeout
+	}
+
+	return *opts
 }
