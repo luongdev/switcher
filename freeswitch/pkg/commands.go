@@ -40,3 +40,7 @@ func LoadCommand(module string, unload bool) types.Command {
 func EchoCommand(uid string) types.Command {
 	return commands.NewEchoCommand(uid)
 }
+
+func PlayCommand(uid, path string) types.Command {
+	return commands.NewPlayCommand(uid, path)
+}

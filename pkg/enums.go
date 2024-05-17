@@ -10,5 +10,7 @@ const (
 	ActivityHangup     enums.Activity = "hangup"
 	ActivityDial       enums.Activity = "dial"
 	ActivityEcho       enums.Activity = "echo"
-	ActivityInitialize enums.Activity = "session_init"
+	ActivityPlay       enums.Activity = "play"
+	ActivityLua        enums.Activity = "lua"
+	ActivityInitialize enums.Activity = "initialize"
 )
