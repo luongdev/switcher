@@ -5,8 +5,8 @@ import (
 	"github.com/luongdev/switcher/workflow/types"
 )
 
-type HttpActivityInput activities.HttpActivityInput
-type HttpActivityOutput activities.HttpActivityOutput
+type HttpActivityInput = activities.HttpActivityInput
+type HttpActivityOutput = activities.HttpActivityOutput
 
 func HttpActivity() types.Activity {
 	return &activities.HttpActivity{}

@@ -12,5 +12,6 @@ const (
 	ActivityEcho       enums.Activity = "echo"
 	ActivityPlay       enums.Activity = "play"
 	ActivityLua        enums.Activity = "lua"
+	ActivitySet        enums.Activity = "set"
 	ActivityInitialize enums.Activity = "initialize"
 )

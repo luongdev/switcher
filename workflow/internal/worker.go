@@ -33,15 +33,16 @@ func NewWorker(domain, taskList string, client types.Client, registry types.Regi
 
 	workerOptions := worker.Options{Logger: logger, MetricsScope: scope}
 	w := worker.New(client, domain, taskList, workerOptions)
+	logger.Info("worker started", zap.String("domain", domain), zap.String("taskList", taskList))
 
 	if r, ok := registry.(*RegistryImpl); ok {
 		for name, f := range r.Workflows() {
 			w.RegisterWorkflowWithOptions(f.HandlerFunc(), workflow.RegisterOptions{Name: name})
-			logger.Info("registered workflow", zap.String("name", name), zap.Any("workflow", f.HandlerFunc))
+			logger.Info("\tregistered workflow", zap.String("name", name))
 		}
 		for name, a := range r.Activities() {
 			w.RegisterActivityWithOptions(a.HandlerFunc(), activity.RegisterOptions{Name: name.String()})
-			logger.Info("registered activity", zap.Any("name", name), zap.Any("workflow", a.HandlerFunc))
+			logger.Info("\tregistered activity", zap.Any("name", name))
 		}
 	}
 

@@ -5,8 +5,8 @@ import (
 	"github.com/luongdev/switcher/internal/activities"
 )
 
-type PlayActivityInput activities.PlayActivityInput
-type PlayActivityOutput activities.PlayActivityOutput
+type PlayActivityInput = activities.PlayActivityInput
+type PlayActivityOutput = activities.PlayActivityOutput
 
 func NewPlayActivity(provider types.ClientProvider) *activities.PlayActivity {
 	return activities.NewPlayActivity(provider)

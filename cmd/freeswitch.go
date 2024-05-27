@@ -63,6 +63,7 @@ func main() {
 	r.RegisterActivity(pkg2.ActivityHangup, activities.NewHangupActivity(provider))
 	r.RegisterActivity(pkg2.ActivityLua, activities.NewLuaActivity(provider))
 	r.RegisterActivity(pkg2.ActivityPlay, activities.NewPlayActivity(provider))
+	r.RegisterActivity(pkg2.ActivitySet, activities.NewSetActivity(provider))
 
 	server := co.Build()
 	server.SetStore(store)
