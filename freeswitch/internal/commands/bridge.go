@@ -55,7 +55,7 @@ func (a *BridgeCommand) Raw() (string, error) {
 	return cmd.BuildMessage(), nil
 }
 
-func NewBridgeCommand(uid string, otherLeg *types.Leg) *BridgeCommand {
+func NewBridgeCommand(uid string, otherLeg interface{}) *BridgeCommand {
 	return &BridgeCommand{UId: UId{uid: uid}, otherLeg: otherLeg}
 }
 

@@ -21,7 +21,7 @@ func OriginateCommand(background bool, aleg, bleg *types.Leg, vars map[string]in
 	return commands.NewOriginateCommand(background, aleg, bleg, vars)
 }
 
-func BridgeCommand(uid string, otherLeg *types.Leg) types.Command {
+func BridgeCommand(uid string, otherLeg interface{}) types.Command {
 	return commands.NewBridgeCommand(uid, otherLeg)
 }
 
@@ -39,4 +39,8 @@ func LoadCommand(module string, unload bool) types.Command {
 
 func EchoCommand(uid string) types.Command {
 	return commands.NewEchoCommand(uid)
+}
+
+func PlayCommand(uid, path string) types.Command {
+	return commands.NewPlayCommand(uid, path)
 }

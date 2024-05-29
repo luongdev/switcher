@@ -3,14 +3,14 @@ package commands
 import (
 	"fmt"
 	"github.com/luongdev/switcher/freeswitch/types"
+	"github.com/luongdev/switcher/freeswitch/utils"
 	"github.com/percipia/eslgo/command/call"
-	"path/filepath"
 )
 
 type LuaCommand struct {
 	UId
 
-	fileName string
+	path string
 }
 
 func (c *LuaCommand) Validate() error {
@@ -18,12 +18,8 @@ func (c *LuaCommand) Validate() error {
 		return err
 	}
 
-	if c.fileName == "" {
-		return fmt.Errorf("invalid file name")
-	}
-
-	if filepath.Ext(c.fileName) != ".lua" {
-		return fmt.Errorf("invalid file extension")
+	if !utils.IsPathValid(c.path, ".lua") {
+		return fmt.Errorf("path must be a .lua file. Got %v", c.path)
 	}
 
 	return nil
@@ -34,11 +30,11 @@ func (c *LuaCommand) Raw() (string, error) {
 		return "", err
 	}
 
-	return (&call.Execute{UUID: c.uid, AppName: "lua", AppArgs: fmt.Sprintf("%v", c.fileName)}).BuildMessage(), nil
+	return (&call.Execute{UUID: c.uid, AppName: "lua", AppArgs: fmt.Sprintf("%v", c.path)}).BuildMessage(), nil
 }
 
 func NewLuaCommand(uid, fileName string) *LuaCommand {
-	return &LuaCommand{UId: UId{uid: uid, allowMissing: true}, fileName: fileName}
+	return &LuaCommand{UId: UId{uid: uid, allowMissing: true}, path: fileName}
 }
 
 var _ types.Command = (*LuaCommand)(nil)
